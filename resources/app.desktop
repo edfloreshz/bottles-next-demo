@@ -1,9 +1,9 @@
 [Desktop Entry]
-Name={{ project-name | title_case }}
-Comment={{ description }}
+Name=Bottles Next
+Comment=Bottles Next Demo
 Type=Application
-Icon={{ appid }}
-Exec={{ project-name }} %F
+Icon=dev.edfloreshz.Bottles.Next
+Exec=bottles-next %F
 Terminal=false
 StartupNotify=true
 Categories=COSMIC

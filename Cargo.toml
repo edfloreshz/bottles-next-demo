@@ -1,10 +1,10 @@
 [package]
-name = "{{ project-name }}"
+name = "bottles-next"
 version = "0.1.0"
 edition = "2021"
-license = "{{ license }}"
-description = "{{ description }}"
-repository = "{{ repository-url }}"
+license = "MPL-2.0"
+description = "Bottles Next Demo"
+repository = "https://github.com/edfloreshz/bottles-next-demo"
 
 [build-dependencies]
 vergen = { version = "8", features = ["git", "gitcl"] }
@@ -13,7 +13,9 @@ vergen = { version = "8", features = ["git", "gitcl"] }
 futures-util = "0.3.31"
 i18n-embed-fl = "0.9.2"
 open = "5.3.0"
+ron = "0.8.1"
 rust-embed = "8.5.0"
+serde = { version = "1.0.216", features = ["derive"] }
 tokio = { version = "1.41.0", features = ["full"] }
 
 [dependencies.i18n-embed]

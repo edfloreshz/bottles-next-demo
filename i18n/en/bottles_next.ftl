@@ -1,4 +1,4 @@
-app-title = {{ project-name | title_case }}
+app-title = Bottles Next
 about = About
 view = View
 welcome = Welcome to COSMIC! ✨

@@ -1,15 +1,17 @@
-// SPDX-License-Identifier: {{ license }}
+// SPDX-License-Identifier: MPL-2.0
 
-use crate::config::Config;
-use crate::fl;
-use cosmic::app::{context_drawer, Core, Task};
+use crate::config::{AppExperience, Config};
+use crate::{fl, pages};
+use cosmic::app::{self, context_drawer, Core, Task};
 use cosmic::cosmic_config::{self, CosmicConfigEntry};
+use cosmic::cosmic_theme::ThemeBuilder;
 use cosmic::iced::alignment::{Horizontal, Vertical};
 use cosmic::iced::{Alignment, Length, Subscription};
-use cosmic::widget::{self, icon, menu, nav_bar};
-use cosmic::{cosmic_theme, theme, Application, ApplicationExt, Apply, Element};
+use cosmic::widget::{self, menu, nav_bar};
+use cosmic::{cosmic_theme, theme, Application, ApplicationExt, Element};
 use futures_util::SinkExt;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 const REPOSITORY: &str = env!("CARGO_PKG_REPOSITORY");
 const APP_ICON: &[u8] = include_bytes!("../resources/icons/hicolor/scalable/apps/icon.svg");
@@ -27,6 +29,8 @@ pub struct AppModel {
     key_binds: HashMap<menu::KeyBind, MenuAction>,
     // Configuration data that persists between application runs.
     config: Config,
+    welcome: pages::welcome::Welcome,
+    home: pages::home::Home,
 }
 
 /// Messages emitted by the application and its widgets.
@@ -37,6 +41,9 @@ pub enum Message {
     ToggleContextPage(ContextPage),
     UpdateConfig(Config),
     LaunchUrl(String),
+    ApplyExperience(AppExperience),
+    Welcome(pages::welcome::Message),
+    Home(pages::home::Message),
 }
 
 /// Create a COSMIC application from the app model
@@ -51,7 +58,7 @@ impl Application for AppModel {
     type Message = Message;
 
     /// Unique identifier in RDNN (reverse domain name notation) format.
-    const APP_ID: &'static str = "{{ appid }}";
+    const APP_ID: &'static str = "dev.edfloreshz.Bottles.Next";
 
     fn core(&self) -> &Core {
         &self.core
@@ -64,23 +71,7 @@ impl Application for AppModel {
     /// Initializes the application with any given flags and startup commands.
     fn init(core: Core, _flags: Self::Flags) -> (Self, Task<Self::Message>) {
         // Create a nav bar with three page items.
-        let mut nav = nav_bar::Model::default();
-
-        nav.insert()
-            .text(fl!("page-id", num = 1))
-            .data::<Page>(Page::Page1)
-            .icon(icon::from_name("applications-science-symbolic"))
-            .activate();
-
-        nav.insert()
-            .text(fl!("page-id", num = 2))
-            .data::<Page>(Page::Page2)
-            .icon(icon::from_name("applications-system-symbolic"));
-
-        nav.insert()
-            .text(fl!("page-id", num = 3))
-            .data::<Page>(Page::Page3)
-            .icon(icon::from_name("applications-games-symbolic"));
+        let nav = nav_bar::Model::default();
 
         // Construct the app model with the runtime's core.
         let mut app = AppModel {
@@ -92,26 +83,32 @@ impl Application for AppModel {
             config: cosmic_config::Config::new(Self::APP_ID, Config::VERSION)
                 .map(|context| match Config::get_entry(&context) {
                     Ok(config) => config,
-                    Err((_errors, config)) => {
-                        // for why in errors {
-                        //     tracing::error!(%why, "error loading app config");
-                        // }
-
-                        config
-                    }
+                    Err((_errors, config)) => config,
                 })
                 .unwrap_or_default(),
+            welcome: pages::welcome::Welcome::new(),
+            home: pages::home::Home::new(),
         };
 
-        // Create a startup command that sets the window title.
-        let command = app.update_title();
+        if app.config.app_experience.is_none() {
+            app.core.nav_bar_set_toggled(false);
+        }
 
-        (app, command)
+        // Create a startup command that sets the window title and the theme.
+        let mut tasks = vec![app.update_title()];
+
+        let theme_str = include_str!("../resources/themes/Bottles.ron");
+        if let Ok(builder) = ron::from_str::<ThemeBuilder>(theme_str) {
+            let theme = cosmic::theme::Theme::custom(Arc::new(builder.build()));
+            tasks.push(app::command::set_theme(theme));
+        }
+
+        (app, Task::batch(tasks))
     }
 
     /// Elements to pack at the start of the header bar.
     fn header_start(&self) -> Vec<Element<Self::Message>> {
-        let menu_bar = menu::bar(vec![menu::Tree::with_children(
+        let _menu_bar = menu::bar(vec![menu::Tree::with_children(
             menu::root(fl!("view")),
             menu::items(
                 &self.key_binds,
@@ -119,12 +116,16 @@ impl Application for AppModel {
             ),
         )]);
 
-        vec![menu_bar.into()]
+        vec![]
     }
 
     /// Enables the COSMIC application to create a nav bar with this model.
     fn nav_model(&self) -> Option<&nav_bar::Model> {
-        Some(&self.nav)
+        if self.config.app_experience.is_none() {
+            None
+        } else {
+            Some(&self.nav)
+        }
     }
 
     /// Display a context drawer if the context page is requested.
@@ -147,8 +148,14 @@ impl Application for AppModel {
     /// Application events will be processed through the view. Any messages emitted by
     /// events received by widgets will be passed to the update method.
     fn view(&self) -> Element<Self::Message> {
-        widget::text::title1(fl!("welcome"))
-            .apply(widget::container)
+        let content = match self.config.app_experience {
+            Some(app_experience) => match app_experience {
+                AppExperience::Next => self.home.next().map(Message::Home),
+                AppExperience::Classic => self.home.classic().map(Message::Home),
+            },
+            None => self.welcome.view().map(Message::Welcome),
+        };
+        widget::container(content)
             .width(Length::Fill)
             .height(Length::Fill)
             .align_x(Horizontal::Center)
@@ -192,7 +199,14 @@ impl Application for AppModel {
     /// Tasks may be returned for asynchronous execution of code in the background
     /// on the application's async runtime.
     fn update(&mut self, message: Self::Message) -> Task<Self::Message> {
+        let mut tasks = vec![];
+
         match message {
+            Message::Home(message) => tasks.push(self.home.update(message)),
+            Message::Welcome(message) => tasks.push(self.welcome.update(message)),
+            Message::ApplyExperience(choice) => {
+                self.config.app_experience = Some(choice);
+            }
             Message::OpenRepositoryUrl => {
                 _ = open::that_detached(REPOSITORY);
             }
@@ -223,7 +237,7 @@ impl Application for AppModel {
                 }
             },
         }
-        Task::none()
+        Task::batch(tasks)
     }
 
     /// Called when a nav item is selected.
@@ -285,13 +299,6 @@ impl AppModel {
             Task::none()
         }
     }
-}
-
-/// The page to display in the application.
-pub enum Page {
-    Page1,
-    Page2,
-    Page3,
 }
 
 /// The context page to display in the context drawer.
