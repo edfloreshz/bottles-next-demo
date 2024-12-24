@@ -1,6 +1,6 @@
 use cosmic::{
     app::Task,
-    iced::{Alignment, Length, Size},
+    iced::{Alignment, Length},
     widget::segmented_button::{Entity, Model, SingleSelect},
     Apply, Element,
 };
@@ -62,60 +62,92 @@ impl Home {
                         include_bytes!("../../resources/images/steam.jpg").to_vec(),
                     ),
                 ),
+                Card::new(
+                    "Need for Speed Unbound",
+                    "12 days ago",
+                    cosmic::widget::image::Handle::from_bytes(
+                        include_bytes!("../../resources/images/nfs-unbound.jpg").to_vec(),
+                    ),
+                ),
+                Card::new(
+                    "Overwatch 2",
+                    "Last week",
+                    cosmic::widget::image::Handle::from_bytes(
+                        include_bytes!("../../resources/images/overwatch-2.png").to_vec(),
+                    ),
+                ),
+                Card::new(
+                    "Need for Speed Heat",
+                    "Last week",
+                    cosmic::widget::image::Handle::from_bytes(
+                        include_bytes!("../../resources/images/nfs-heat.jpg").to_vec(),
+                    ),
+                ),
+                Card::new(
+                    "Apex Legends",
+                    "2 weeks ago",
+                    cosmic::widget::image::Handle::from_bytes(
+                        include_bytes!("../../resources/images/apex-legends.webp").to_vec(),
+                    ),
+                ),
+                Card::new(
+                    "Warframe",
+                    "2 weeks ago",
+                    cosmic::widget::image::Handle::from_bytes(
+                        include_bytes!("../../resources/images/warframe.png").to_vec(),
+                    ),
+                ),
             ],
         }
     }
 
     pub fn next(&self) -> Element<Message> {
-        let title = cosmic::widget::text("Bottles Next").size(40).center();
-
-        cosmic::widget::column().spacing(20).push(title).into()
+        self.grid()
     }
 
     pub fn classic(&self) -> Element<Message> {
-        let spacing = cosmic::theme::active().cosmic().spacing;
-
         let active = self.tabs.active_data::<Tab>();
         if let Some(Tab::Bottles) = active {
             let title = cosmic::widget::text("Bottles").size(40).center();
             cosmic::widget::column().spacing(20).push(title).into()
         } else {
-            cosmic::widget::responsive(move |size| {
-                cosmic::widget::container(cosmic::widget::scrollable(self.grid(size)))
-                    .max_width(1600.)
-                    .padding(spacing.space_xs)
-                    .align_x(Alignment::Center)
-                    .width(Length::Fill)
-                    .height(Length::Fill)
-                    .into()
-            })
-            .into()
+            self.grid()
         }
     }
 
-    fn grid(&self, size: Size) -> Element<Message> {
-        let spacing = cosmic::theme::active().cosmic().spacing;
+    fn grid(&self) -> Element<Message> {
+        cosmic::widget::responsive(move |size| {
+            let spacing = cosmic::theme::active().cosmic().spacing;
+            let width = (size.width - 2.0 * spacing.space_s as f32).floor().max(0.0) as usize;
+            let GridMetrics {
+                cols,
+                item_width,
+                column_spacing,
+            } = GridMetrics::new(width, 260 + 2 * spacing.space_s as usize, spacing.space_s);
 
-        let width = (size.width - 2.0 * spacing.space_s as f32).floor().max(0.0) as usize;
-        let GridMetrics {
-            cols,
-            item_width,
-            column_spacing,
-        } = GridMetrics::new(width, 260 + 2 * spacing.space_s as usize, spacing.space_s);
-
-        let mut grid = cosmic::widget::grid();
-        let mut col = 0;
-        for card in self.library.iter() {
-            if col >= cols {
-                grid = grid.insert_row();
-                col = 0;
+            let mut grid = cosmic::widget::grid();
+            let mut col = 0;
+            for card in self.library.iter() {
+                if col >= cols {
+                    grid = grid.insert_row();
+                    col = 0;
+                }
+                grid = grid.push(crate::components::card::card(card, item_width));
+                col += 1;
             }
-            grid = grid.push(crate::components::card::card(card, item_width));
-            col += 1;
-        }
-        grid.column_spacing(column_spacing)
-            .row_spacing(column_spacing)
+
+            cosmic::widget::container(cosmic::widget::scrollable(
+                grid.column_spacing(column_spacing)
+                    .row_spacing(column_spacing),
+            ))
+            .max_width(1600.)
+            .padding(spacing.space_xs)
+            .align_x(Alignment::Center)
+            .width(Length::Fill)
+            .height(Length::Fill)
             .into()
+        })
+        .into()
     }
 
     pub fn classic_header_bar(&self) -> Vec<Element<Message>> {

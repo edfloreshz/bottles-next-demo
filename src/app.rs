@@ -122,9 +122,9 @@ impl Application for AppModel {
                 items.push(new_bottle.on_press(Message::OpenRepositoryUrl).into());
             }
             Some(AppExperience::Next) => {
-                let new_bottle =
+                let options =
                     cosmic::widget::button::icon(icons::get_handle("view-more-symbolic", 18));
-                items.push(new_bottle.on_press(Message::OpenRepositoryUrl).into());
+                items.push(options.on_press(Message::OpenRepositoryUrl).into());
             }
             None => {}
         }

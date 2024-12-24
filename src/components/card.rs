@@ -22,12 +22,12 @@ pub fn card<'a, Message: 'a + Clone + 'static>(
             cosmic::widget::image(&card.image)
                 .width(Length::Fill)
                 .content_fit(ContentFit::Cover)
-                .height(200.),
+                .height(150.),
         )
         .push(
             cosmic::widget::row()
                 .align_y(Vertical::Center)
-                .padding(10.)
+                .padding(20.)
                 .push(
                     cosmic::widget::column()
                         .push(cosmic::widget::text(&card.title).size(18.))
