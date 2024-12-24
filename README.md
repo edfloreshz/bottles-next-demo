@@ -2,6 +2,8 @@
 
 Bottles Next Demo
 
+![Bottles Next Demo](./resources/screenshots/welcome.png)
+
 ## Installation
 
 A [justfile](./justfile) is included by default for the [casey/just][just] command runner.
