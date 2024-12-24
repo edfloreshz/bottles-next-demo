@@ -1,7 +1,10 @@
 use cosmic::{
     app::Task,
     iced::{Alignment, Length},
-    widget::segmented_button::{Entity, Model, SingleSelect},
+    widget::{
+        icon,
+        segmented_button::{Entity, Model, SingleSelect},
+    },
     Apply, Element,
 };
 
@@ -11,17 +14,35 @@ pub struct Home {
     tabs: Model<SingleSelect>,
     query: String,
     library: Vec<Card>,
+    bottles: Vec<Bottle>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Message {
     QueryInput(String),
     TabActivated(Entity),
+    Dummy,
 }
 
 pub enum Tab {
     Bottles,
     Library,
+}
+
+pub struct Bottle {
+    title: String,
+    caption: String,
+    icon: icon::Handle,
+}
+
+impl Bottle {
+    pub fn new(title: impl Into<String>, caption: impl Into<String>, icon: icon::Handle) -> Self {
+        Self {
+            title: title.into(),
+            caption: caption.into(),
+            icon,
+        }
+    }
 }
 
 impl Home {
@@ -98,24 +119,86 @@ impl Home {
                     ),
                 ),
             ],
+            bottles: vec![
+                Bottle::new(
+                    "Gaming paradise",
+                    "Gaming",
+                    icons::get_handle("xbox-controller-symbolic", 18),
+                ),
+                Bottle::new(
+                    "Windows development",
+                    "Software",
+                    icons::get_handle("build-alt-symbolic", 18),
+                ),
+                Bottle::new(
+                    "Game engines",
+                    "Gaming",
+                    icons::get_handle("xbox-controller-symbolic", 18),
+                ),
+                Bottle::new(
+                    "Weird experiments",
+                    "Custom",
+                    icons::get_handle("issue-symbolic", 18),
+                ),
+            ],
         }
     }
 
     pub fn next(&self) -> Element<Message> {
-        self.grid()
+        self.library_grid()
     }
 
     pub fn classic(&self) -> Element<Message> {
         let active = self.tabs.active_data::<Tab>();
         if let Some(Tab::Bottles) = active {
-            let title = cosmic::widget::text("Bottles").size(40).center();
-            cosmic::widget::column().spacing(20).push(title).into()
+            self.bottles_grid()
         } else {
-            self.grid()
+            self.library_grid()
         }
     }
 
-    fn grid(&self) -> Element<Message> {
+    fn bottles_grid(&self) -> Element<Message> {
+        cosmic::widget::responsive(move |size| {
+            let spacing = cosmic::theme::active().cosmic().spacing;
+            let width = (size.width - 2.0 * spacing.space_s as f32).floor().max(0.0) as usize;
+            let GridMetrics {
+                cols,
+                item_width,
+                column_spacing,
+            } = GridMetrics::new(width, 260 + 2 * spacing.space_s as usize, spacing.space_s);
+
+            let mut grid = cosmic::widget::grid();
+            let mut col = 0;
+            for bottle in self.bottles.iter() {
+                if col >= cols {
+                    grid = grid.insert_row();
+                    col = 0;
+                }
+                grid = grid.push(crate::components::button::button(
+                    &bottle.title,
+                    &bottle.caption,
+                    Some(bottle.icon.clone()),
+                    Message::Dummy,
+                    item_width as f32,
+                ));
+                col += 1;
+            }
+
+            cosmic::widget::container(cosmic::widget::scrollable(
+                grid.column_spacing(column_spacing)
+                    .row_spacing(column_spacing),
+            ))
+            .max_width(1600.)
+            .padding(spacing.space_xs)
+            .align_x(Alignment::Center)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .into()
+        })
+        .into()
+    }
+
+    fn library_grid(&self) -> Element<Message> {
         cosmic::widget::responsive(move |size| {
             let spacing = cosmic::theme::active().cosmic().spacing;
             let width = (size.width - 2.0 * spacing.space_s as f32).floor().max(0.0) as usize;
@@ -180,6 +263,7 @@ impl Home {
                 self.query = query;
             }
             Message::TabActivated(entity) => self.tabs.activate(entity),
+            Message::Dummy => println!("Dummy"),
         }
         Task::batch(tasks)
     }

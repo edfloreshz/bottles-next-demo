@@ -88,28 +88,13 @@ impl Welcome {
     }
 
     fn experience_button(&self, experience: &AppExperience) -> Element<Message> {
-        let info = cosmic::widget::column()
-            .push(
-                cosmic::widget::text(experience.title())
-                    .size(18.)
-                    .font(cosmic::font::bold()),
-            )
-            .push(cosmic::widget::text::caption(experience.caption()))
-            .spacing(5);
-
-        let icon = cosmic::widget::icon(icons::get_handle("arrow4-right-symbolic", 18));
-
-        cosmic::widget::button::custom(
-            cosmic::widget::row()
-                .push(info)
-                .push(cosmic::widget::horizontal_space())
-                .push(icon)
-                .align_y(Vertical::Center),
+        crate::components::button::button(
+            experience.title(),
+            experience.caption(),
+            None,
+            Message::PickExperience(*experience),
+            Length::Fill,
         )
-        .on_press(Message::PickExperience(*experience))
-        .width(Length::Fill)
-        .padding(15.)
-        .into()
     }
 
     fn selected_widget(&self) -> Element<Message> {

@@ -44,6 +44,9 @@ impl IconCache {
         bundle!("plus-large-symbolic", 18);
         bundle!("view-more-symbolic", 18);
         bundle!("play-large-symbolic", 18);
+        bundle!("xbox-controller-symbolic", 18);
+        bundle!("build-alt-symbolic", 18);
+        bundle!("issue-symbolic", 18);
 
         Self { cache }
     }
