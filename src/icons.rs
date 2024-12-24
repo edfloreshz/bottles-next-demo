@@ -43,6 +43,7 @@ impl IconCache {
         bundle!("magic-wand-symbolic", 18);
         bundle!("plus-large-symbolic", 18);
         bundle!("view-more-symbolic", 18);
+        bundle!("play-large-symbolic", 18);
 
         Self { cache }
     }

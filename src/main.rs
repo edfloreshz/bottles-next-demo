@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 mod app;
+mod components;
 mod config;
 mod i18n;
 mod icons;
@@ -17,7 +18,7 @@ fn main() -> cosmic::iced::Result {
     icons::init();
 
     // Settings for configuring the application window and iced runtime.
-    let settings = cosmic::app::Settings::default().size_limits(
+    let settings = cosmic::app::Settings::default().debug(false).size_limits(
         cosmic::iced::Limits::NONE
             .min_width(360.0)
             .min_height(180.0),
