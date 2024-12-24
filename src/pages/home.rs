@@ -73,7 +73,7 @@ impl Home {
                     "Overwatch 2",
                     "Last week",
                     cosmic::widget::image::Handle::from_bytes(
-                        include_bytes!("../../resources/images/overwatch-2.png").to_vec(),
+                        include_bytes!("../../resources/images/overwatch-2.jpg").to_vec(),
                     ),
                 ),
                 Card::new(
@@ -94,7 +94,7 @@ impl Home {
                     "Warframe",
                     "2 weeks ago",
                     cosmic::widget::image::Handle::from_bytes(
-                        include_bytes!("../../resources/images/warframe.png").to_vec(),
+                        include_bytes!("../../resources/images/warframe.jpg").to_vec(),
                     ),
                 ),
             ],
