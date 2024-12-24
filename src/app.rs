@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 use crate::config::{AppExperience, Config};
-use crate::{fl, pages};
+use crate::{fl, icons, pages};
 use cosmic::app::{self, context_drawer, Core, Task};
 use cosmic::cosmic_config::{self, CosmicConfigEntry};
 use cosmic::cosmic_theme::ThemeBuilder;
@@ -90,9 +90,7 @@ impl Application for AppModel {
             home: pages::home::Home::new(),
         };
 
-        if app.config.app_experience.is_none() {
-            app.core.nav_bar_set_toggled(false);
-        }
+        app.core.nav_bar_set_toggled(false);
 
         // Create a startup command that sets the window title and the theme.
         let mut tasks = vec![app.update_title()];
@@ -108,6 +106,7 @@ impl Application for AppModel {
 
     /// Elements to pack at the start of the header bar.
     fn header_start(&self) -> Vec<Element<Self::Message>> {
+        let mut items = vec![];
         let _menu_bar = menu::bar(vec![menu::Tree::with_children(
             menu::root(fl!("view")),
             menu::items(
@@ -116,16 +115,47 @@ impl Application for AppModel {
             ),
         )]);
 
-        vec![]
+        match self.config.app_experience {
+            Some(AppExperience::Classic) => {
+                let new_bottle =
+                    cosmic::widget::button::icon(icons::get_handle("plus-large-symbolic", 18));
+                items.push(new_bottle.on_press(Message::OpenRepositoryUrl).into());
+            }
+            Some(AppExperience::Next) => {
+                let new_bottle =
+                    cosmic::widget::button::icon(icons::get_handle("view-more-symbolic", 18));
+                items.push(new_bottle.on_press(Message::OpenRepositoryUrl).into());
+            }
+            None => {}
+        }
+
+        items
+    }
+
+    fn header_center(&self) -> Vec<Element<Self::Message>> {
+        if let Some(app_experience) = self.config.app_experience {
+            match app_experience {
+                AppExperience::Next => self
+                    .home
+                    .next_header_bar()
+                    .into_iter()
+                    .map(|e| e.map(Message::Home))
+                    .collect(),
+                AppExperience::Classic => self
+                    .home
+                    .classic_header_bar()
+                    .into_iter()
+                    .map(|e| e.map(Message::Home))
+                    .collect(),
+            }
+        } else {
+            vec![]
+        }
     }
 
     /// Enables the COSMIC application to create a nav bar with this model.
     fn nav_model(&self) -> Option<&nav_bar::Model> {
-        if self.config.app_experience.is_none() {
-            None
-        } else {
-            Some(&self.nav)
-        }
+        None
     }
 
     /// Display a context drawer if the context page is requested.
@@ -160,6 +190,11 @@ impl Application for AppModel {
             .height(Length::Fill)
             .align_x(Horizontal::Center)
             .align_y(Vertical::Center)
+            .class(if self.config.app_experience.is_some() {
+                cosmic::style::Container::Card
+            } else {
+                cosmic::style::Container::Background
+            })
             .into()
     }
 
