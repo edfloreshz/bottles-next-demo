@@ -168,12 +168,14 @@ impl Application for AppModel {
                 vec![widget::row()
                     .push(self.home.program_options_button().map(Message::Home))
                     .push(self.home.program_power_button().map(Message::Home))
+                    .push(widget::horizontal_space())
                     .push(
                         self.home
                             .program_tabs()
                             .map(|tabs| tabs.map(Message::Home))
                             .unwrap_or(cosmic::widget::text("").into()),
                     )
+                    .push(widget::horizontal_space())
                     .align_y(Vertical::Center)
                     .spacing(10.)
                     .apply(widget::container)
@@ -187,12 +189,14 @@ impl Application for AppModel {
                 vec![widget::row()
                     .push(self.home.bottle_options_button().map(Message::Home))
                     .push(self.home.bottle_power_button().map(Message::Home))
+                    .push(widget::horizontal_space())
                     .push(
                         self.home
                             .bottle_tabs()
                             .map(|tabs| tabs.map(Message::Home))
                             .unwrap_or(cosmic::widget::text("").into()),
                     )
+                    .push(widget::horizontal_space())
                     .align_y(Vertical::Center)
                     .spacing(10.)
                     .apply(widget::container)
@@ -203,12 +207,14 @@ impl Application for AppModel {
                 vec![widget::row()
                     .push(self.home.program_options_button().map(Message::Home))
                     .push(self.home.program_power_button().map(Message::Home))
+                    .push(widget::horizontal_space())
                     .push(
                         self.home
                             .program_tabs()
                             .map(|tabs| tabs.map(Message::Home))
                             .unwrap_or(cosmic::widget::text("").into()),
                     )
+                    .push(widget::horizontal_space())
                     .align_y(Vertical::Center)
                     .spacing(10.)
                     .apply(widget::container)
