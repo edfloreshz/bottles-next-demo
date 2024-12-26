@@ -164,7 +164,7 @@ impl Application for AppModel {
                         self.home
                             .program_tabs()
                             .map(|tabs| tabs.map(Message::Home))
-                            .unwrap_or(cosmic::widget::text("").into()),
+                            .unwrap_or(widget::text("").into()),
                     )
                     .push(widget::horizontal_space())
                     .align_y(Vertical::Center)
@@ -182,7 +182,7 @@ impl Application for AppModel {
                         self.home
                             .bottle_tabs()
                             .map(|tabs| tabs.map(Message::Home))
-                            .unwrap_or(cosmic::widget::text("").into()),
+                            .unwrap_or(widget::text("").into()),
                     )
                     .push(widget::horizontal_space())
                     .align_y(Vertical::Center)
@@ -200,7 +200,7 @@ impl Application for AppModel {
                         self.home
                             .program_tabs()
                             .map(|tabs| tabs.map(Message::Home))
-                            .unwrap_or(cosmic::widget::text("").into()),
+                            .unwrap_or(widget::text("").into()),
                     )
                     .push(widget::horizontal_space())
                     .align_y(Vertical::Center)

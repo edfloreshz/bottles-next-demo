@@ -2,6 +2,7 @@ use bottle::Bottle;
 use cosmic::{
     app::Task,
     iced::{alignment::Vertical, Alignment, Length},
+    widget,
     widget::segmented_button::{Entity, Model, SingleSelect},
     Apply, Element,
 };
@@ -68,7 +69,7 @@ impl Home {
                 Program::new(
                     "Assassin's Creed Valhalla",
                     "Running...",
-                    cosmic::widget::image::Handle::from_bytes(
+                    widget::image::Handle::from_bytes(
                         include_bytes!("../../resources/images/assassins-creed-valhalla.jpg")
                             .to_vec(),
                     ),
@@ -76,56 +77,56 @@ impl Home {
                 Program::new(
                     "Battle.net",
                     "1h ago",
-                    cosmic::widget::image::Handle::from_bytes(
+                    widget::image::Handle::from_bytes(
                         include_bytes!("../../resources/images/blizzard.jpg").to_vec(),
                     ),
                 ),
                 Program::new(
                     "Cyberpunk 2077",
                     "4h ago",
-                    cosmic::widget::image::Handle::from_bytes(
+                    widget::image::Handle::from_bytes(
                         include_bytes!("../../resources/images/cyberpunk.jpg").to_vec(),
                     ),
                 ),
                 Program::new(
                     "Steam",
                     "6h ago",
-                    cosmic::widget::image::Handle::from_bytes(
+                    widget::image::Handle::from_bytes(
                         include_bytes!("../../resources/images/steam.jpg").to_vec(),
                     ),
                 ),
                 Program::new(
                     "Need for Speed Unbound",
                     "12 days ago",
-                    cosmic::widget::image::Handle::from_bytes(
+                    widget::image::Handle::from_bytes(
                         include_bytes!("../../resources/images/nfs-unbound.jpg").to_vec(),
                     ),
                 ),
                 Program::new(
                     "Overwatch 2",
                     "Last week",
-                    cosmic::widget::image::Handle::from_bytes(
+                    widget::image::Handle::from_bytes(
                         include_bytes!("../../resources/images/overwatch-2.jpg").to_vec(),
                     ),
                 ),
                 Program::new(
                     "Need for Speed Heat",
                     "Last week",
-                    cosmic::widget::image::Handle::from_bytes(
+                    widget::image::Handle::from_bytes(
                         include_bytes!("../../resources/images/nfs-heat.jpg").to_vec(),
                     ),
                 ),
                 Program::new(
                     "Apex Legends",
                     "2 weeks ago",
-                    cosmic::widget::image::Handle::from_bytes(
+                    widget::image::Handle::from_bytes(
                         include_bytes!("../../resources/images/apex-legends.webp").to_vec(),
                     ),
                 ),
                 Program::new(
                     "Warframe",
                     "2 weeks ago",
-                    cosmic::widget::image::Handle::from_bytes(
+                    widget::image::Handle::from_bytes(
                         include_bytes!("../../resources/images/warframe.jpg").to_vec(),
                     ),
                 ),
@@ -233,7 +234,7 @@ impl Home {
     }
 
     fn bottles_grid(&self) -> Element<Message> {
-        cosmic::widget::responsive(move |size| {
+        widget::responsive(move |size| {
             let spacing = cosmic::theme::active().cosmic().spacing;
             let width = (size.width - 2.0 * spacing.space_s as f32).floor().max(0.0) as usize;
             let GridMetrics {
@@ -242,7 +243,7 @@ impl Home {
                 column_spacing,
             } = GridMetrics::new(width, 260 + 2 * spacing.space_s as usize, spacing.space_s);
 
-            let mut grid = cosmic::widget::grid();
+            let mut grid = widget::grid();
             let mut col = 0;
             for bottle in self.bottles.iter() {
                 if col >= cols {
@@ -259,7 +260,7 @@ impl Home {
                 col += 1;
             }
 
-            cosmic::widget::container(cosmic::widget::scrollable(
+            widget::container(widget::scrollable(
                 grid.column_spacing(column_spacing)
                     .row_spacing(column_spacing),
             ))
@@ -274,7 +275,7 @@ impl Home {
     }
 
     fn library_grid(&self) -> Element<Message> {
-        cosmic::widget::responsive(move |size| {
+        widget::responsive(move |size| {
             let spacing = cosmic::theme::active().cosmic().spacing;
             let width = (size.width - 2.0 * spacing.space_s as f32).floor().max(0.0) as usize;
             let GridMetrics {
@@ -283,7 +284,7 @@ impl Home {
                 column_spacing,
             } = GridMetrics::new(width, 260 + 2 * spacing.space_s as usize, spacing.space_s);
 
-            let mut grid = cosmic::widget::grid();
+            let mut grid = widget::grid();
             let mut col = 0;
             for program in self.library.iter() {
                 if col >= cols {
@@ -297,7 +298,7 @@ impl Home {
                 col += 1;
             }
 
-            cosmic::widget::container(cosmic::widget::scrollable(
+            widget::container(widget::scrollable(
                 grid.column_spacing(column_spacing)
                     .row_spacing(column_spacing),
             ))
@@ -312,7 +313,7 @@ impl Home {
     }
 
     pub fn classic_tabs(&self) -> Element<Message> {
-        cosmic::widget::tab_bar::horizontal(&self.classic_tabs_model)
+        widget::tab_bar::horizontal(&self.classic_tabs_model)
             .width(Length::Shrink)
             .on_activate(Message::ClassicTabActivated)
             .padding(4.)
@@ -322,22 +323,22 @@ impl Home {
     pub fn search_bar(&self) -> Element<Message> {
         let icon = icons::get_icon("loupe-large-symbolic", 18).into();
         if self.selected.is_none() {
-            cosmic::widget::text_input("Search for software and games...", &self.query)
+            widget::text_input("Search for software and games...", &self.query)
                 .width(Length::Shrink)
                 .leading_icon(icon)
                 .on_input(Message::QueryInput)
                 .editable()
                 .padding(8.)
                 .size(16.)
-                .apply(cosmic::widget::container)
+                .apply(widget::container)
                 .max_width(300.)
                 .into()
         } else {
-            cosmic::widget::button::custom(
-                cosmic::widget::row()
-                    .push(cosmic::widget::horizontal_space())
+            widget::button::custom(
+                widget::row()
+                    .push(widget::horizontal_space())
                     .push(icon)
-                    .push(cosmic::widget::horizontal_space())
+                    .push(widget::horizontal_space())
                     .align_y(Vertical::Center)
                     .padding(5.)
                     .width(100.),
@@ -347,38 +348,38 @@ impl Home {
     }
 
     pub fn program_back_button(&self) -> Element<Message> {
-        cosmic::widget::button::icon(icons::get_handle("left-symbolic", 18))
+        widget::button::icon(icons::get_handle("left-symbolic", 18))
             .on_press(Message::Select(None))
             .into()
     }
 
     pub fn options_button(&self) -> Element<Message> {
-        cosmic::widget::button::icon(icons::get_handle("view-more-symbolic", 18)).into()
+        widget::button::icon(icons::get_handle("view-more-symbolic", 18)).into()
     }
 
     pub fn new_button(&self) -> Element<Message> {
-        cosmic::widget::button::icon(icons::get_handle("plus-large-symbolic", 18)).into()
+        widget::button::icon(icons::get_handle("plus-large-symbolic", 18)).into()
     }
 
     pub fn program_options_button(&self) -> Element<Message> {
-        cosmic::widget::button::icon(icons::get_handle("view-more-symbolic", 18)).into()
+        widget::button::icon(icons::get_handle("view-more-symbolic", 18)).into()
     }
 
     pub fn bottle_options_button(&self) -> Element<Message> {
-        cosmic::widget::button::icon(icons::get_handle("view-more-symbolic", 18)).into()
+        widget::button::icon(icons::get_handle("view-more-symbolic", 18)).into()
     }
 
     pub fn program_power_button(&self) -> Element<Message> {
-        cosmic::widget::button::icon(icons::get_handle("power-symbolic", 18)).into()
+        widget::button::icon(icons::get_handle("power-symbolic", 18)).into()
     }
 
     pub fn bottle_power_button(&self) -> Element<Message> {
-        cosmic::widget::button::icon(icons::get_handle("power-symbolic", 18)).into()
+        widget::button::icon(icons::get_handle("power-symbolic", 18)).into()
     }
 
     pub fn program_tabs(&self) -> Option<Element<Message>> {
         self.program_tabs_model.as_ref().map(|model| {
-            cosmic::widget::tab_bar::horizontal(&model)
+            widget::tab_bar::horizontal(&model)
                 .width(Length::Shrink)
                 .on_activate(Message::ProgramTabActivated)
                 .padding(4.)
@@ -388,7 +389,7 @@ impl Home {
 
     pub fn bottle_tabs(&self) -> Option<Element<Message>> {
         self.bottle_tabs_model.as_ref().map(|model| {
-            cosmic::widget::tab_bar::horizontal(&model)
+            widget::tab_bar::horizontal(&model)
                 .width(Length::Shrink)
                 .on_activate(Message::BottleTabActivated)
                 .padding(4.)

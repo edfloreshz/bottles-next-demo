@@ -1,6 +1,6 @@
 use cosmic::{
     iced::{alignment::Vertical, Length},
-    widget::icon,
+    widget::{self, icon},
 };
 
 use crate::icons;
@@ -11,29 +11,29 @@ pub fn button<'a, Message: Clone + 'a>(
     icon: Option<icon::Handle>,
     message: Message,
     width: impl Into<Length>,
-) -> cosmic::widget::Button<'a, Message> {
-    let info = cosmic::widget::column()
+) -> widget::Button<'a, Message> {
+    let info = widget::column()
         .push(
-            cosmic::widget::text(title.into())
+            widget::text(title.into())
                 .size(18.)
                 .font(cosmic::font::bold()),
         )
         .push(if let Some(icon) = icon {
-            cosmic::widget::row()
+            widget::row()
                 .spacing(10.)
-                .push(cosmic::widget::icon(icon))
-                .push(cosmic::widget::text::caption(caption.into()))
+                .push(widget::icon(icon))
+                .push(widget::text::caption(caption.into()))
         } else {
-            cosmic::widget::row().push(cosmic::widget::text::caption(caption.into()))
+            widget::row().push(widget::text::caption(caption.into()))
         })
         .spacing(5);
 
-    let icon = cosmic::widget::icon(icons::get_handle("arrow4-right-symbolic", 18));
+    let icon = widget::icon(icons::get_handle("arrow4-right-symbolic", 18));
 
-    cosmic::widget::button::custom(
-        cosmic::widget::row()
+    widget::button::custom(
+        widget::row()
             .push(info)
-            .push(cosmic::widget::horizontal_space())
+            .push(widget::horizontal_space())
             .push(icon)
             .align_y(Vertical::Center),
     )

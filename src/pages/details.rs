@@ -1,7 +1,7 @@
 use cosmic::{
     app::Task,
     iced::{Alignment, Length},
-    Apply, Element,
+    widget, Apply, Element,
 };
 
 use crate::{app, components::card::Card};
@@ -24,7 +24,7 @@ impl Details {
 
     pub fn view(&self) -> Option<Element<Message>> {
         self.selected.as_ref().map(|_| {
-            cosmic::widget::responsive(move |size| {
+            widget::responsive(move |size| {
                 let spacing = cosmic::theme::active().cosmic().spacing;
                 let width = (size.width - 2.0 * spacing.space_s as f32).floor().max(0.0) as usize;
                 let GridMetrics {
@@ -33,7 +33,7 @@ impl Details {
                     column_spacing,
                 } = GridMetrics::new(width, 260 + 2 * spacing.space_s as usize, spacing.space_s);
 
-                let mut grid = cosmic::widget::grid();
+                let mut grid = widget::grid();
                 let mut col = 0;
                 for _ in 0..10 {
                     if col >= cols {
@@ -44,7 +44,7 @@ impl Details {
                     col += 1;
                 }
 
-                cosmic::widget::container(cosmic::widget::scrollable(
+                widget::container(widget::scrollable(
                     grid.column_spacing(column_spacing)
                         .row_spacing(column_spacing),
                 ))
@@ -55,7 +55,7 @@ impl Details {
                 .height(Length::Fill)
                 .into()
             })
-            .apply(cosmic::widget::container)
+            .apply(widget::container)
             .class(cosmic::style::Container::Card)
             .into()
         })
