@@ -143,17 +143,8 @@ impl Application for AppModel {
 
     fn header_center(&self) -> Vec<Element<Self::Message>> {
         match (self.config.app_experience, &self.home.selected) {
-            (Some(AppExperience::Next), Some(Selected::Program(_))) => {
-                vec![]
-            }
             (Some(AppExperience::Next), None) => {
                 vec![self.home.search_bar().map(Message::Home)]
-            }
-            (Some(AppExperience::Classic), Some(Selected::Bottle(_))) => {
-                vec![]
-            }
-            (Some(AppExperience::Classic), Some(Selected::Program(_))) => {
-                vec![]
             }
             (Some(AppExperience::Classic), None) => {
                 vec![self.home.classic_tabs().map(Message::Home)]
@@ -181,9 +172,6 @@ impl Application for AppModel {
                     .apply(widget::container)
                     .width(Length::Fill)
                     .into()]
-            }
-            (Some(AppExperience::Next), None) => {
-                vec![]
             }
             (Some(AppExperience::Classic), Some(Selected::Bottle(_))) => {
                 vec![widget::row()
@@ -220,9 +208,6 @@ impl Application for AppModel {
                     .apply(widget::container)
                     .width(Length::Fill)
                     .into()]
-            }
-            (Some(AppExperience::Classic), None) => {
-                vec![]
             }
             (_, _) => vec![],
         }
