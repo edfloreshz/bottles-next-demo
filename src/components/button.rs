@@ -1,7 +1,6 @@
 use cosmic::{
     iced::{alignment::Vertical, Length},
     widget::icon,
-    Element,
 };
 
 use crate::icons;
@@ -12,7 +11,7 @@ pub fn button<'a, Message: Clone + 'a>(
     icon: Option<icon::Handle>,
     message: Message,
     width: impl Into<Length>,
-) -> Element<'a, Message> {
+) -> cosmic::widget::Button<'a, Message> {
     let info = cosmic::widget::column()
         .push(
             cosmic::widget::text(title.into())
@@ -41,5 +40,4 @@ pub fn button<'a, Message: Clone + 'a>(
     .on_press(message)
     .width(width)
     .padding(15.)
-    .into()
 }

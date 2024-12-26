@@ -1,60 +1,71 @@
+use bottle::Bottle;
 use cosmic::{
     app::Task,
-    iced::{Alignment, Length},
-    widget::{
-        icon,
-        segmented_button::{Entity, Model, SingleSelect},
-    },
+    iced::{alignment::Vertical, Alignment, Length},
+    widget::segmented_button::{Entity, Model, SingleSelect},
     Apply, Element,
 };
+use program::Program;
 
-use crate::{app, components::card::Card, icons};
+use crate::{app, icons};
+
+pub mod bottle;
+pub mod program;
 
 pub struct Home {
-    tabs: Model<SingleSelect>,
+    classic_tabs_model: Model<SingleSelect>,
+    program_tabs_model: Option<Model<SingleSelect>>,
+    bottle_tabs_model: Option<Model<SingleSelect>>,
     query: String,
-    library: Vec<Card>,
+    pub selected: Option<Selected>,
+    library: Vec<Program>,
     bottles: Vec<Bottle>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug)]
 pub enum Message {
     QueryInput(String),
-    TabActivated(Entity),
-    Dummy,
+    ProgramTabActivated(Entity),
+    BottleTabActivated(Entity),
+    ClassicTabActivated(Entity),
+    Select(Option<Selected>),
 }
 
-pub enum Tab {
+#[derive(Clone, Debug)]
+pub enum Selected {
+    Bottle(Bottle),
+    Program(Program),
+}
+
+pub enum ClassicTab {
     Bottles,
     Library,
 }
 
-pub struct Bottle {
-    title: String,
-    caption: String,
-    icon: icon::Handle,
+pub enum BottleTab {
+    Programs,
+    Settings,
+    Snapshots,
 }
 
-impl Bottle {
-    pub fn new(title: impl Into<String>, caption: impl Into<String>, icon: icon::Handle) -> Self {
-        Self {
-            title: title.into(),
-            caption: caption.into(),
-            icon,
-        }
-    }
+pub enum ProgramTab {
+    Program,
+    Advanced,
 }
 
 impl Home {
     pub fn new() -> Self {
         Self {
-            tabs: Model::builder()
-                .insert(move |b| b.text("Bottles").data(Tab::Bottles).activate())
-                .insert(move |b| b.text("Library").data(Tab::Library))
+            classic_tabs_model: Model::builder()
+                .insert(move |b| b.text("Bottles").data(ClassicTab::Bottles).activate())
+                .insert(move |b| b.text("Library").data(ClassicTab::Library))
                 .build(),
+            program_tabs_model: None,
+            bottle_tabs_model: None,
             query: String::new(),
+            selected: None,
             library: vec![
-                Card::new(
+                Program::new(
                     "Assassin's Creed Valhalla",
                     "Running...",
                     cosmic::widget::image::Handle::from_bytes(
@@ -62,56 +73,56 @@ impl Home {
                             .to_vec(),
                     ),
                 ),
-                Card::new(
+                Program::new(
                     "Battle.net",
                     "1h ago",
                     cosmic::widget::image::Handle::from_bytes(
                         include_bytes!("../../resources/images/blizzard.jpg").to_vec(),
                     ),
                 ),
-                Card::new(
+                Program::new(
                     "Cyberpunk 2077",
                     "4h ago",
                     cosmic::widget::image::Handle::from_bytes(
                         include_bytes!("../../resources/images/cyberpunk.jpg").to_vec(),
                     ),
                 ),
-                Card::new(
+                Program::new(
                     "Steam",
                     "6h ago",
                     cosmic::widget::image::Handle::from_bytes(
                         include_bytes!("../../resources/images/steam.jpg").to_vec(),
                     ),
                 ),
-                Card::new(
+                Program::new(
                     "Need for Speed Unbound",
                     "12 days ago",
                     cosmic::widget::image::Handle::from_bytes(
                         include_bytes!("../../resources/images/nfs-unbound.jpg").to_vec(),
                     ),
                 ),
-                Card::new(
+                Program::new(
                     "Overwatch 2",
                     "Last week",
                     cosmic::widget::image::Handle::from_bytes(
                         include_bytes!("../../resources/images/overwatch-2.jpg").to_vec(),
                     ),
                 ),
-                Card::new(
+                Program::new(
                     "Need for Speed Heat",
                     "Last week",
                     cosmic::widget::image::Handle::from_bytes(
                         include_bytes!("../../resources/images/nfs-heat.jpg").to_vec(),
                     ),
                 ),
-                Card::new(
+                Program::new(
                     "Apex Legends",
                     "2 weeks ago",
                     cosmic::widget::image::Handle::from_bytes(
                         include_bytes!("../../resources/images/apex-legends.webp").to_vec(),
                     ),
                 ),
-                Card::new(
+                Program::new(
                     "Warframe",
                     "2 weeks ago",
                     cosmic::widget::image::Handle::from_bytes(
@@ -144,13 +155,77 @@ impl Home {
         }
     }
 
+    pub fn update(&mut self, message: Message) -> Task<app::Message> {
+        let mut tasks = vec![];
+        match message {
+            Message::QueryInput(query) => {
+                self.query = query;
+            }
+            Message::ClassicTabActivated(entity) => {
+                self.bottle_tabs_model = None;
+                self.program_tabs_model = None;
+                self.selected = None;
+                tasks.push(cosmic::task::message(app::Message::Details(
+                    crate::pages::details::Message::SetSelected(None),
+                )));
+                self.classic_tabs_model.activate(entity)
+            }
+            Message::ProgramTabActivated(entity) => {
+                if let Some(ref mut program_tabs_model) = self.program_tabs_model {
+                    program_tabs_model.activate(entity)
+                }
+            }
+            Message::BottleTabActivated(entity) => {
+                if let Some(ref mut bottle_tabs_model) = self.bottle_tabs_model {
+                    bottle_tabs_model.activate(entity)
+                }
+            }
+            Message::Select(selected) => {
+                self.selected = selected.clone();
+                tasks.push(cosmic::task::message(app::Message::Details(
+                    crate::pages::details::Message::SetSelected(selected),
+                )));
+                match &self.selected {
+                    Some(Selected::Bottle(_bottle)) => {
+                        self.bottle_tabs_model = Some(
+                            Model::builder()
+                                .insert(move |b| {
+                                    b.text("Programs").data(BottleTab::Programs).activate()
+                                })
+                                .insert(move |b| b.text("Settings").data(BottleTab::Settings))
+                                .insert(move |b| b.text("Snapshots").data(BottleTab::Snapshots))
+                                .build(),
+                        )
+                    }
+                    Some(Selected::Program(program)) => {
+                        self.program_tabs_model = Some(
+                            Model::builder()
+                                .insert(move |b| {
+                                    b.text(program.title.clone())
+                                        .data(ProgramTab::Program)
+                                        .activate()
+                                })
+                                .insert(move |b| b.text("Advanced").data(ProgramTab::Advanced))
+                                .build(),
+                        )
+                    }
+                    None => {
+                        self.bottle_tabs_model = None;
+                        self.program_tabs_model = None;
+                    }
+                }
+            }
+        }
+        Task::batch(tasks)
+    }
+
     pub fn next(&self) -> Element<Message> {
         self.library_grid()
     }
 
     pub fn classic(&self) -> Element<Message> {
-        let active = self.tabs.active_data::<Tab>();
-        if let Some(Tab::Bottles) = active {
+        let active = self.classic_tabs_model.active_data::<ClassicTab>();
+        if let Some(ClassicTab::Bottles) = active {
             self.bottles_grid()
         } else {
             self.library_grid()
@@ -178,7 +253,7 @@ impl Home {
                     &bottle.title,
                     &bottle.caption,
                     Some(bottle.icon.clone()),
-                    Message::Dummy,
+                    Message::Select(Some(Selected::Bottle(bottle.clone()))),
                     item_width as f32,
                 ));
                 col += 1;
@@ -210,12 +285,15 @@ impl Home {
 
             let mut grid = cosmic::widget::grid();
             let mut col = 0;
-            for card in self.library.iter() {
+            for program in self.library.iter() {
                 if col >= cols {
                     grid = grid.insert_row();
                     col = 0;
                 }
-                grid = grid.push(crate::components::card::card(card, item_width));
+                grid = grid.push(
+                    crate::components::card::card(program.into(), item_width)
+                        .on_press(Message::Select(Some(Selected::Program(program.clone())))),
+                );
                 col += 1;
             }
 
@@ -233,39 +311,89 @@ impl Home {
         .into()
     }
 
-    pub fn classic_header_bar(&self) -> Vec<Element<Message>> {
-        let tabs = cosmic::widget::tab_bar::horizontal(&self.tabs)
+    pub fn classic_tabs(&self) -> Element<Message> {
+        cosmic::widget::tab_bar::horizontal(&self.classic_tabs_model)
             .width(Length::Shrink)
-            .on_activate(Message::TabActivated)
-            .padding(4.);
-        vec![tabs.into()]
+            .on_activate(Message::ClassicTabActivated)
+            .padding(4.)
+            .into()
     }
 
-    pub fn next_header_bar(&self) -> Vec<Element<Message>> {
-        let placeholder = "Search for softwre and games...";
+    pub fn search_bar(&self) -> Element<Message> {
         let icon = icons::get_icon("loupe-large-symbolic", 18).into();
-        let input = cosmic::widget::text_input(placeholder, &self.query)
-            .width(Length::Shrink)
-            .leading_icon(icon)
-            .on_input(Message::QueryInput)
-            .padding(8.)
-            .editable()
-            .size(16.)
-            .apply(cosmic::widget::container)
-            .max_width(300.);
-        vec![input.into()]
+        if self.selected.is_none() {
+            cosmic::widget::text_input("Search for software and games...", &self.query)
+                .width(Length::Shrink)
+                .leading_icon(icon)
+                .on_input(Message::QueryInput)
+                .editable()
+                .padding(8.)
+                .size(16.)
+                .apply(cosmic::widget::container)
+                .max_width(300.)
+                .into()
+        } else {
+            cosmic::widget::button::custom(
+                cosmic::widget::row()
+                    .push(cosmic::widget::horizontal_space())
+                    .push(icon)
+                    .push(cosmic::widget::horizontal_space())
+                    .align_y(Vertical::Center)
+                    .padding(5.)
+                    .width(100.),
+            )
+            .into()
+        }
     }
 
-    pub fn update(&mut self, message: Message) -> Task<app::Message> {
-        let tasks = vec![];
-        match message {
-            Message::QueryInput(query) => {
-                self.query = query;
-            }
-            Message::TabActivated(entity) => self.tabs.activate(entity),
-            Message::Dummy => println!("Dummy"),
-        }
-        Task::batch(tasks)
+    pub fn program_back_button(&self) -> Element<Message> {
+        cosmic::widget::button::icon(icons::get_handle("left-symbolic", 18))
+            .on_press(Message::Select(None))
+            .into()
+    }
+
+    pub fn options_button(&self) -> Element<Message> {
+        cosmic::widget::button::icon(icons::get_handle("view-more-symbolic", 18)).into()
+    }
+
+    pub fn new_button(&self) -> Element<Message> {
+        cosmic::widget::button::icon(icons::get_handle("plus-large-symbolic", 18)).into()
+    }
+
+    pub fn program_options_button(&self) -> Element<Message> {
+        cosmic::widget::button::icon(icons::get_handle("view-more-symbolic", 18)).into()
+    }
+
+    pub fn bottle_options_button(&self) -> Element<Message> {
+        cosmic::widget::button::icon(icons::get_handle("view-more-symbolic", 18)).into()
+    }
+
+    pub fn program_power_button(&self) -> Element<Message> {
+        cosmic::widget::button::icon(icons::get_handle("power-symbolic", 18)).into()
+    }
+
+    pub fn bottle_power_button(&self) -> Element<Message> {
+        cosmic::widget::button::icon(icons::get_handle("power-symbolic", 18)).into()
+    }
+
+    pub fn program_tabs(&self) -> Option<Element<Message>> {
+        self.program_tabs_model.as_ref().map(|model| {
+            cosmic::widget::tab_bar::horizontal(&model)
+                .width(Length::Shrink)
+                .on_activate(Message::ProgramTabActivated)
+                .padding(4.)
+                .into()
+        })
+    }
+
+    pub fn bottle_tabs(&self) -> Option<Element<Message>> {
+        self.bottle_tabs_model.as_ref().map(|model| {
+            cosmic::widget::tab_bar::horizontal(&model)
+                .width(Length::Shrink)
+                .on_activate(Message::BottleTabActivated)
+                .padding(4.)
+                .into()
+        })
     }
 }
 

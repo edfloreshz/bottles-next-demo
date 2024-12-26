@@ -46,7 +46,7 @@ impl Welcome {
         let experience_buttons = self
             .experiences
             .iter()
-            .map(|experience| self.experience_button(experience));
+            .map(|experience| self.experience_button(experience).into());
 
         let experience_buttons = cosmic::widget::column()
             .extend(experience_buttons)
@@ -87,7 +87,7 @@ impl Welcome {
         Task::batch(tasks)
     }
 
-    fn experience_button(&self, experience: &AppExperience) -> Element<Message> {
+    fn experience_button(&self, experience: &AppExperience) -> cosmic::widget::Button<Message> {
         crate::components::button::button(
             experience.title(),
             experience.caption(),
