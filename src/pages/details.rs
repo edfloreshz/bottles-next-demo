@@ -24,37 +24,34 @@ impl Details {
 
     pub fn view(&self) -> Option<Element<Message>> {
         self.selected.as_ref().map(|_| {
-            widget::responsive(move |size| {
-                let spacing = cosmic::theme::active().cosmic().spacing;
-                let width = (size.width - 2.0 * spacing.space_s as f32).floor().max(0.0) as usize;
-                let GridMetrics {
-                    cols,
-                    item_width,
-                    column_spacing,
-                } = GridMetrics::new(width, 260 + 2 * spacing.space_s as usize, spacing.space_s);
+            let spacing = cosmic::theme::active().cosmic().spacing;
+            let width = 800.0 as usize;
+            let GridMetrics {
+                cols,
+                item_width,
+                column_spacing,
+            } = GridMetrics::new(width, 260 + 2 * spacing.space_s as usize, spacing.space_s);
 
-                let mut grid = widget::grid();
-                let mut col = 0;
-                for _ in 0..10 {
-                    if col >= cols {
-                        grid = grid.insert_row();
-                        col = 0;
-                    }
-                    grid = grid.push(crate::components::card::card(Card::default(), item_width));
-                    col += 1;
+            let mut grid = widget::grid();
+            let mut col = 0;
+            for _ in 0..10 {
+                if col >= cols {
+                    grid = grid.insert_row();
+                    col = 0;
                 }
+                grid = grid.push(crate::components::card::card(Card::default(), item_width));
+                col += 1;
+            }
 
-                widget::container(widget::scrollable(
-                    grid.column_spacing(column_spacing)
-                        .row_spacing(column_spacing),
-                ))
-                .max_width(1600.)
-                .padding(spacing.space_xs)
-                .align_x(Alignment::Center)
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .into()
-            })
+            widget::container(widget::scrollable(
+                grid.column_spacing(column_spacing)
+                    .row_spacing(column_spacing),
+            ))
+            .max_width(1600.)
+            .padding(spacing.space_xs)
+            .align_x(Alignment::Center)
+            .width(Length::Fill)
+            .height(Length::Fill)
             .apply(widget::container)
             .class(cosmic::style::Container::Card)
             .into()
